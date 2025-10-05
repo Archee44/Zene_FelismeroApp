@@ -1,13 +1,27 @@
 from flask import Flask
 from backend.database import init_db
 from backend.routes.music_routes import music_bp
+from flask_cors import CORS
+import sys
+from pathlib import Path
 
+
+
+project_root = Path(__file__).resolve().parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 app = Flask(__name__)
 init_db()
+CORS(app)
+
+
 
 # Blueprintek regisztrálása
 app.register_blueprint(music_bp, url_prefix="/api/music")
+
+
+
 
 @app.route("/")
 def home():

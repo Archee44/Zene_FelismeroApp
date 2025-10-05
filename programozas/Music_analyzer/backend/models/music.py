@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from ..database import Base
 
 class Track(Base):
@@ -9,5 +9,7 @@ class Track(Base):
     artist = Column(String, default="Ismeretlen")
     genre = Column(String, default="Ismeretlen")
     bpm = Column(Integer, default=0)
+    duration = Column(Float, default=0.0)
+    rms = Column(Float, default=0.0)
     camelot = Column(String, default="Ismeretlen")
     path = Column(String)
