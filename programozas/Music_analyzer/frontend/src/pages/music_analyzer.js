@@ -92,6 +92,25 @@ function MusicAnalyzer() {
             </div>
           )}
 
+          {result.title && result.artist && (
+            <div style={{ marginTop: '1rem' }}>
+              <Text><strong>Megnyitás külső platformon:</strong></Text>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <a
+                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(result.artist + ' ' + result.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  <img src='/icons/youtube_logo.png' alt='YouTube' width='32px' height='32px'/>
+                </a>
+                <a
+                  href={`https://open.spotify.com/search/${encodeURIComponent(result.artist + ' ' + result.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  <img src='/icons/spotify_logo.png' alt='Spotify' width='32px' height='32px'/>
+                </a>
+              </div>
+            </div>
+          )}
           
         </div>
       )}
