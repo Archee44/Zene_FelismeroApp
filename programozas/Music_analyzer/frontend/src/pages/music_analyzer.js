@@ -53,24 +53,24 @@ function MusicAnalyzer() {
         mt="md"
       />
 
-      <Button
-        variant="filled"
-        color="blue"
-        mt="md"
-        onClick={handleAnalyze}
-        disabled={loading || !file}
-      >
-        {loading ? <Loader size="sm" color="white" /> : 'Elemzés indítása'}
-      </Button>
+      <div style={{ display: "flex", gap: "1rem", marginTop: "2rem" }}>
+        <Button
+          variant="filled"
+          color="blue"
+          onClick={handleAnalyze}
+          disabled={loading || !file}
+        >
+          {loading ? <Loader size="sm" color="white" /> : 'Elemzés indítása'}
+        </Button>
 
-      <Button
-            variant="outline"
-            color="green"
-            mt="xl"
-            onClick={() => navigate('/')}
-      >
-        Vissza a főoldalra
-      </Button>
+        <Button
+          variant="filled"
+          color="green"
+          onClick={() => navigate('/')}
+        >
+          Vissza a főoldalra
+        </Button>
+      </div>
 
       {result && (
         <div style={{ marginTop: '20px' }}>

@@ -34,3 +34,5 @@ db.sqlite3
 # ---- macOS / Windows ----
 .DS_Store
 Thumbs.db
+
+music.db
