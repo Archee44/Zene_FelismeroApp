@@ -6,6 +6,7 @@ from backend.services.music_service import analyze_track, save_track, recommend_
 from backend.services.music_analyze import analyze_music
 from flask import send_from_directory
 import re
+import requests
 
 
 music_bp = Blueprint("music", __name__)
@@ -84,3 +85,39 @@ def recommend(track_id):
     db: Session = next(get_db())
     recommendations = recommend_ai(db, track_id, strict)
     return jsonify(recommendations)
+
+
+GENIUS_TOKEN = os.getenv("GENIUS_TOKEN")
+
+@music_bp.route("/search-lyrics", methods=["POST"])
+def search_lyrics():
+    print("Genius token:", GENIUS_TOKEN)
+    data = request.json
+    snippet = data.get("snippet")
+    if not snippet:
+        return jsonify({"error": "No lyrics snippet provided"}), 400
+
+    url = "https://api.genius.com/search"
+    headers = {"Authorization": f"Bearer {GENIUS_TOKEN}"}
+    params = {"q": snippet}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        results = response.json()["response"]["hits"]
+        if not results:
+            return jsonify({"error": "No results found"}), 404
+
+        songs = []
+        for hit in results[:10]:
+            song = hit["result"]
+            songs.append({
+                "title": song["title"],
+                "artist": song["primary_artist"]["name"],
+                "url": song["url"],
+                "cover": song.get("song_art_image_url")
+            })
+        return jsonify({"songs": songs})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

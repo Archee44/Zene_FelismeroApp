@@ -12,6 +12,7 @@ export default function Layout() {
               <Group> 
                 <Button component={Link} to="/" variant="filled" color="indigo" size="md" leftSection={<IconHome size={14} />}> Főoldal </Button>
                 <Button component={Link} to="/music-analyzer" variant="filled" color="indigo" size="md" leftSection={<IconMusic size={14} />}> Elemzés </Button> 
+                <Button component={Link} to="/lyrics-search" variant="filled" color="indigo" size="md" leftSection={<IconMusic size={14} />}> Dalszöveg Keresés </Button>
               </Group> 
             </div>
           </div> 

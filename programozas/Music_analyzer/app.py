@@ -15,12 +15,16 @@ app = Flask(__name__)
 init_db()
 CORS(app)
 
+# betölti a .env fájl tartalmát
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+GENIUS_TOKEN = os.getenv("GENIUS_TOKEN")
 
 
 # Blueprintek regisztrálása
 app.register_blueprint(music_bp, url_prefix="/api/music")
-
-
 
 
 @app.route("/")

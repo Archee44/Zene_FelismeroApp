@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Button, FileInput, Loader, Text } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 
 function MusicAnalyzer() {
-  const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -61,14 +59,6 @@ function MusicAnalyzer() {
           disabled={loading || !file}
         >
           {loading ? <Loader size="sm" color="white" /> : 'Elemzés indítása'}
-        </Button>
-
-        <Button
-          variant="filled"
-          color="green"
-          onClick={() => navigate('/')}
-        >
-          Vissza a főoldalra
         </Button>
       </div>
 
