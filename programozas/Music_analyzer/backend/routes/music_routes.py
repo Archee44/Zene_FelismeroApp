@@ -29,25 +29,24 @@ def analyze():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
-
-    file = request.files["file"]
-    
-    raw_filename = file.filename
-    safe_filename = sanitize_filename(raw_filename)
-    file_path = os.path.join(UPLOAD_DIR, safe_filename)
-    print("Upload dir:", UPLOAD_DIR)
-
     try:
+        file = request.files["file"]
+    
+        raw_filename = file.filename
+        safe_filename = sanitize_filename(raw_filename)
+        file_path = os.path.join(UPLOAD_DIR, safe_filename)
+        print("Upload dir:", UPLOAD_DIR)
+
         file.save(file_path)
         print(f"File saved to {file_path}")
-    except Exception as e:
-        return jsonify({"error": f"Cannot save file: {str(e)}"}), 500
 
-    try:
+
         track_data = analyze_music(file_path)
         track_data["path"] = safe_filename
+        return jsonify(track_data)
     except Exception as e:
-        return jsonify({"error": f"Analysis failed: {str(e)}"}), 500
+        print("Analyze error:", str(e))
+        return jsonify({"error": f"Analyze failed: {str(e)}"}), 500
 
     try:
         print("Track data:", track_data)
