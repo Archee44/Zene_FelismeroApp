@@ -1,6 +1,6 @@
 import { AppShell, Group, Button, Text, } from "@mantine/core";
 import { Link, Outlet } from "react-router-dom";
-import { IconHome, IconMusic } from "@tabler/icons-react";
+import { IconHome, IconMusic, IconSearch } from "@tabler/icons-react";
 
 export default function Layout() {
    return (
@@ -12,12 +12,12 @@ export default function Layout() {
               <Group> 
                 <Button component={Link} to="/" variant="filled" color="indigo" size="md" leftSection={<IconHome size={14} />}> Főoldal </Button>
                 <Button component={Link} to="/music-analyzer" variant="filled" color="indigo" size="md" leftSection={<IconMusic size={14} />}> Elemzés </Button> 
-                <Button component={Link} to="/lyrics-search" variant="filled" color="indigo" size="md" leftSection={<IconMusic size={14} />}> Dalszöveg Keresés </Button>
+                <Button component={Link} to="/lyrics-search" variant="filled" color="indigo" size="md" leftSection={<IconSearch size={14} />}> Zene Keresés </Button>
               </Group> 
             </div>
           </div> 
         </AppShell.Header>
-        <main style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "80vh" }}>
+        <main style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "80vh", marginTop: 70 }}>
            <Outlet /> 
         </main> 
       </AppShell>
