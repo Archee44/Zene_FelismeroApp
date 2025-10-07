@@ -7,6 +7,7 @@ from backend.services.music_analyze import analyze_music
 from flask import send_from_directory
 import re
 import requests
+import base64
 
 
 music_bp = Blueprint("music", __name__)
@@ -121,3 +122,64 @@ def search_lyrics():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+YOUTUBE_API_KEY = "AIzaSyC9oWbK7x2qZDKWjGGvAkrnuO8XzTNoyQI"
+
+@music_bp.route("/youtube", methods=["GET"])
+def youtube_search():
+    query = request.args.get("q")
+    if not query:
+        return jsonify({"error": "Missing query"}), 400
+
+    url = (
+        f"https://www.googleapis.com/youtube/v3/search"
+        f"?part=snippet&type=video&maxResults=1&q={query}&key={YOUTUBE_API_KEY}"
+    )
+    res = requests.get(url)
+    data = res.json()
+
+    if "items" not in data or not data["items"]:
+        return jsonify({"error": "No results"}), 404
+
+    video_id = data["items"][0]["id"]["videoId"]
+    video_url = f"https://www.youtube.com/watch?v={video_id}"
+    return jsonify({"video_url": video_url})
+
+
+SPOTIFY_CLIENT_ID = "15a835f82b7144e59792a71699f26b7e"
+SPOTIFY_CLIENT_SECRET = "feb7cfe529ad4ddfa6bdd0a098797979"
+
+def get_spotify_token():
+    auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
+    b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+    headers = {"Authorization": f"Basic {b64_auth_str}"}
+    data = {"grant_type": "client_credentials"}
+
+    res = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=data)
+    res.raise_for_status()
+    return res.json()["access_token"]
+
+@music_bp.route("/spotify", methods=["GET"])
+def spotify_search():
+    query = request.args.get("q")
+    if not query:
+        return jsonify({"error": "Missing query"}), 400
+
+    try:
+        token = get_spotify_token()
+        headers = {"Authorization": f"Bearer {token}"}
+        params = {"q": query, "type": "track", "limit": 1}
+        res = requests.get("https://api.spotify.com/v1/search", headers=headers, params=params)
+        data = res.json()
+
+        if "tracks" not in data or not data["tracks"]["items"]:
+            return jsonify({"error": "No results"}), 404
+
+        track = data["tracks"]["items"][0]
+        track_url = track["external_urls"]["spotify"]
+
+        return jsonify({"track_url": track_url})
+
+    except Exception as e:
+        print("Spotify search error:", e)
+        return jsonify({"error": "Spotify API error"}), 500
