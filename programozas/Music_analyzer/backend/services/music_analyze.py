@@ -4,6 +4,7 @@ import sys
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 from backend.services.camelot import detect_camelot
+from flask import jsonify
 #import eyed3
 import os
 

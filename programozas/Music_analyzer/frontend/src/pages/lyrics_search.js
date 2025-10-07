@@ -81,20 +81,50 @@ export default function LyricsSearch() {
           <div style={{ marginTop: '1rem', textAlign: "center" }}>
             <div style={{ fontWeight: "bold", marginBottom: 4 }}>Megnyitás külső platformon:</div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', justifyContent: 'center' }}>
-              <a
-                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(currentSong.artist + ' ' + currentSong.title)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <img src='/icons/youtube_logo.png' alt='YouTube' width='32px' height='32px' />
-              </a>
-              <a
-                href={`https://open.spotify.com/search/${encodeURIComponent(currentSong.artist + ' ' + currentSong.title)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <img src='/icons/spotify_logo.png' alt='Spotify' width='32px' height='32px' />
-              </a>
+            <img
+              src='/icons/youtube_logo.png'
+              alt='YouTube'
+              width='32px'
+              height='32px'
+              style={{ cursor: 'pointer' }}
+              onClick={async () => {
+                try {
+                  const query = `${currentSong.artist} ${currentSong.title}`;
+                  const res = await fetch(`http://localhost:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
+                  const data = await res.json();
+                  if (data.video_url) {
+                    window.open(data.video_url, '_blank');
+                  } else {
+                    alert('Nem található konkrét YouTube videó ehhez a zenéhez.');
+                  }
+                } catch (error) {
+                  alert('Hiba történt a YouTube keresés során.');
+                  console.error(error);
+                }
+              }}
+            />
+            <img
+              src='/icons/spotify_logo.png'
+              alt='Spotify'
+              width='32px'
+              height='32px'
+              style={{ cursor: 'pointer' }}
+              onClick={async () => {
+                try {
+                  const query = `${currentSong.artist} ${currentSong.title}`;
+                  const res = await fetch(`http://localhost:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
+                  const data = await res.json();
+                  if (data.track_url) {
+                    window.open(data.track_url, '_blank');
+                  } else {
+                    alert('Nem található a Spotify-on ez a zene.');
+                  }
+                } catch (error) {
+                  alert('Hiba történt a Spotify keresés során.');
+                  console.error(error);
+                }
+              }}
+            />
             </div>
           </div>
 
