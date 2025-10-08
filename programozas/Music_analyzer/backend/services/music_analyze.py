@@ -7,8 +7,16 @@ from backend.services.camelot import detect_camelot
 from flask import jsonify
 #import eyed3
 import os
+import re
 
 upload_folder = "./uploads"
+
+def cleaned_title(title: str) -> str:
+    title = re.sub(r"[\(\[].*?[\)\]]", "", title)
+    title = re.sub(r"\b(official music video|official video|music video|video clip|audio|hq|id\d{3,}|v\d+|mp3|flac|mp3juices\.cc|mp3j\.cc|y2mate\.com|soundcloud rip|youtube download)\b", "", title, flags=re.IGNORECASE)
+    title = title.replace("_", " ")
+    title = re.sub(r"\s+", " ", title)
+    return title.strip()
 
 def analyze_music(file_path: str):
     try:
@@ -40,6 +48,7 @@ def analyze_music(file_path: str):
             genre = genre_tag.text[0]
         if title_tag and title_tag.text:
             title = title_tag.text[0]
+            title = cleaned_title(title)
     except Exception as e:
         print("Metadata hiba", str(e))
         return jsonify({"error": f"Metadata read error: {str(e)}"}), 500
@@ -54,6 +63,7 @@ def analyze_music(file_path: str):
                 artist = from_title_artist
             if title == "Unknown Title":
                 title = from_title_title
+                title = cleaned_title(title)
 
     return {
         "title": title,
