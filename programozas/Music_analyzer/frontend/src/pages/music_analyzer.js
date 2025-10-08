@@ -55,7 +55,7 @@ function MusicAnalyzer() {
       <div style={{ display: "flex", gap: "1rem", marginTop: "2rem" }}>
         <Button
           variant="filled"
-          color="blue"
+          color="#0C1A2A"
           onClick={handleAnalyze}
           disabled={loading || !file}
         >
