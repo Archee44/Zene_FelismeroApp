@@ -1,6 +1,7 @@
 from flask import Flask
 from backend.database import init_db
 from backend.routes.music_routes import music_bp
+from backend.services.spotify_auth import spotify_auth
 from flask_cors import CORS
 import sys
 from pathlib import Path
@@ -25,6 +26,7 @@ GENIUS_TOKEN = os.getenv("GENIUS_TOKEN")
 
 # Blueprintek regisztrálása
 app.register_blueprint(music_bp, url_prefix="/api/music")
+app.register_blueprint(spotify_auth, url_prefix="/api/spotify")
 
 
 @app.route("/")

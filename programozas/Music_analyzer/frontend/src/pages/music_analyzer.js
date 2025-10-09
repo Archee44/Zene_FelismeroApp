@@ -17,10 +17,15 @@ function MusicAnalyzer() {
     setResult(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/music/analyze', {
-        method: 'POST',
-        body: formData,
-      });
+const token = localStorage.getItem("spotify_access_token");
+
+const res = await fetch('http://localhost:5000/api/music/analyze', {
+  method: 'POST',
+  headers: {
+    "Authorization": `Bearer ${token || ""}`
+  },
+  body: formData,
+});
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -43,6 +48,13 @@ function MusicAnalyzer() {
       <Text size="sm" color="dimmed">
         Tölts fel egy MP3 fájlt, hogy elemezzük a zenei jellemzőit.
       </Text>
+<Button
+  color="green"
+  variant="outline"
+  onClick={() => window.location.href = "http://localhost:5000/api/spotify/login"}
+>
+  Spotify bejelentkezés
+</Button>
 
       <FileInput
         placeholder="Válassz egy MP3 fájlt"
@@ -73,6 +85,41 @@ function MusicAnalyzer() {
           <Text><strong>Hossz:</strong> {result.duration.toFixed(2)} mp</Text>
           <Text><strong>RMS:</strong> {result.rms.toFixed(4)}</Text>
           <Text><strong>Camelot:</strong> {result.camelot}</Text>
+
+              {/* Spotify/Librosa extra jellemzők */}
+    {result.danceability !== undefined && (
+      <Text><strong>Danceability:</strong> {result.danceability}</Text>
+    )}
+    {result.energy !== undefined && (
+      <Text><strong>Energy:</strong> {result.energy}</Text>
+    )}
+    {result.valence !== undefined && (
+      <Text><strong>Valence:</strong> {result.valence}</Text>
+    )}
+    {result.acousticness !== undefined && (
+      <Text><strong>Acousticness:</strong> {result.acousticness}</Text>
+    )}
+    {result.instrumentalness !== undefined && (
+      <Text><strong>Instrumentalness:</strong> {result.instrumentalness}</Text>
+    )}
+    {result.liveness !== undefined && (
+      <Text><strong>Liveness:</strong> {result.liveness}</Text>
+    )}
+    {result.speechiness !== undefined && (
+      <Text><strong>Speechiness:</strong> {result.speechiness}</Text>
+    )}
+    {result.spotify_tempo !== undefined && (
+      <Text><strong>Spotify Tempo:</strong> {result.spotify_tempo}</Text>
+    )}
+    {result.spotify_key !== undefined && (
+      <Text><strong>Spotify Key:</strong> {result.spotify_key}</Text>
+    )}
+    {result.mode !== undefined && (
+      <Text><strong>Mode:</strong> {result.mode}</Text>
+    )}
+    {result.time_signature !== undefined && (
+      <Text><strong>Time Signature:</strong> {result.time_signature}</Text>
+    )}
 
           {result.path && (
             <div style={{ marginTop: '1rem' }}>

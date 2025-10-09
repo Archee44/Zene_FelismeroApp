@@ -27,49 +27,20 @@ def get_db():
 
 @music_bp.route("/analyze", methods=["POST"])
 def analyze():
-    db: Session = next(get_db())
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "Nincs fájl feltöltve!"}), 400
 
-    try:
-        file = request.files["file"]
-    
-        raw_filename = file.filename
-        safe_filename = sanitize_filename(raw_filename)
-        file_path = os.path.join(UPLOAD_DIR, safe_filename)
-        print("Upload dir:", UPLOAD_DIR)
+    filepath = f"./uploads/{file.filename}"
+    file.save(filepath)
 
-        file.save(file_path)
-        print(f"File saved to {file_path}")
+    # Spotify token átadása, ha van
+    user_token = None
+    if "Authorization" in request.headers:
+        user_token = request.headers["Authorization"].replace("Bearer ", "")
 
-
-        track_data = analyze_music(file_path)
-        track_data["path"] = safe_filename
-        return jsonify(track_data)
-    except Exception as e:
-        print("Analyze error:", str(e))
-        return jsonify({"error": f"Analyze failed: {str(e)}"}), 500
-
-    try:
-        print("Track data:", track_data)
-        track = save_track(db, track_data)
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print("Saving problem:", str(e))
-        return jsonify({"error": f"DB save failed: {str(e)}"}), 500
-
-    return jsonify({
-        "id": track.id,
-        "title": track.title,
-        "artist": track.artist,
-        "genre": track.genre,
-        "bpm": track.bpm,
-        "duration": track.duration,
-        "rms": track.rms,
-        "camelot": track.camelot,
-        "path": track.path
-    })
+    result = analyze_music(filepath, user_token)
+    return jsonify(result)
 
 
 @music_bp.route("/uploads/<path:filename>")
