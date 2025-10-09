@@ -8,6 +8,9 @@ from flask import send_from_directory
 import re
 import requests
 import base64
+from flask import redirect, session
+import pandas as pd
+import io
 
 
 music_bp = Blueprint("music", __name__)
@@ -148,6 +151,12 @@ def youtube_search():
 
 SPOTIFY_CLIENT_ID = "15a835f82b7144e59792a71699f26b7e"
 SPOTIFY_CLIENT_SECRET = "feb7cfe529ad4ddfa6bdd0a098797979"
+"""  """ """
+SPOTIFY_CLIENT_ID = "8c2fe85d5d78418ba2144554abdc2fba"
+SPOTIFY_CLIENT_SECRET = "2a0b0a2d127e49ebbb775fc02b2ee35a"
+REDIRECT_URI = "https://inappropriate-cody-primsie.ngrok-free.dev/api/music/callback"
+SCOPES = "playlist-read-private playlist-read-collaborative" """
+
 
 def get_spotify_token():
     auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
@@ -183,3 +192,161 @@ def spotify_search():
     except Exception as e:
         print("Spotify search error:", e)
         return jsonify({"error": "Spotify API error"}), 500
+
+
+
+def refresh_spotify_token():
+    refresh_token = session.get("refresh_token")
+    if not refresh_token:
+        return None
+    payload = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": SPOTIFY_CLIENT_ID,
+        "client_secret": SPOTIFY_CLIENT_SECRET
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    res = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
+    token_data = res.json()
+    session["access_token"] = token_data.get("access_token")
+    return token_data.get("access_token")
+
+
+
+def spotify_top_tracks():
+    try:
+        token = get_spotify_token()
+        headers = {"Authorization": f"Bearer {token}"}
+        params = {"q": "Top 50 Global", "type": "track", "limit": 50}
+        res = requests.get("https://api.spotify.com/v1/search", headers=headers, params=params)
+        res.raise_for_status()
+        data = res.json()
+
+        top_tracks = []
+        for idx, track in enumerate(data["tracks"]["items"]):
+            top_tracks.append({
+                "title": track["name"],
+                "artist": ", ".join([a["name"] for a in track["artists"]]),
+                "spotify_url": track["external_urls"]["spotify"],
+                "image": track["album"]["images"][0]["url"] if track["album"]["images"] else None,
+                "rank": idx + 1
+            })
+        return jsonify({"top_tracks": top_tracks})
+
+    except Exception as e:
+        print("Spotify top tracks error:", e)
+        return jsonify({"error": "Failed to fetch top tracks"}), 500
+
+
+
+
+""" @music_bp.route("/spotify-top", methods=["GET"])
+def spotify_top_tracks():
+    try:
+        # Get access token using client credentials
+        token = get_spotify_token()
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # Top 50 Global playlist ID
+        playlist_id = "37i9dQZEVXbMDoHDwVN2tF"
+        res = requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", headers=headers)
+        res.raise_for_status()
+        data = res.json()
+
+        top_tracks = []
+        for idx, item in enumerate(data["items"]):
+            track = item["track"]
+            top_tracks.append({
+                "title": track["name"],
+                "artist": ", ".join([a["name"] for a in track["artists"]]),
+                "spotify_url": track["external_urls"]["spotify"],
+                "image": track["album"]["images"][0]["url"] if track["album"]["images"] else None,
+                "rank": idx + 1
+            })
+
+        return jsonify({"top_tracks": top_tracks})
+
+    except Exception as e:
+        print("Spotify top tracks error:", e)
+        return jsonify({"error": "Failed to fetch top tracks"}), 500
+
+ """
+
+
+
+""" @music_bp.route("/spotify-top", methods=["GET"])
+def spotify_top_tracks():
+    try:
+        url = "https://charts-spotify-com-service.spotify.com/api/charts?operationName=getChart&variables=%7B%22country%22%3A%22global%22%2C%22type%22%3A%22regional%22%2C%22date%22%3A%22latest%22%2C%22limit%22%3A50%2C%22offset%22%3A0%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%227e6b84c72683a53bafef9d8db68db7cc1cb8e5127b73313cda0c0c62496f9a59%22%7D%7D"
+
+        headers = {"User-Agent": "Mozilla/5.0"}
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()
+        data = res.json()
+
+        top_tracks = []
+        for entry in data["entries"]:
+            meta = entry["trackMetadata"]
+            chart = entry["chartEntryData"]
+            top_tracks.append({
+                "title": meta["trackName"],
+                "artist": meta["artistName"],
+                "spotify_url": "https://open.spotify.com/track/" + meta["trackUri"].split(":")[-1],
+                "image": meta["displayImageUri"],
+                "rank": chart["currentRank"]
+            })
+        return jsonify({"top_tracks":top_tracks})
+    
+    except Exception as e:  
+        print("Spotify top tracks error:", e)
+        return jsonify({"error": "Failed to fetch top tracks"}), 500 """    
+""" 
+@music_bp.route("/login")
+def login():
+    auth_url = (
+        "https://accounts.spotify.com/authorize"
+        f"?response_type=code&client_id={SPOTIFY_CLIENT_ID}"
+        f"&scope={SCOPES}&redirect_uri={REDIRECT_URI}"
+    )
+    return redirect(auth_url)
+ """
+""" 
+
+@music_bp.route("/callback")
+def callback():
+    code = request.args.get("code")
+    token_url = "https://accounts.spotify.com/api/token"
+    payload = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": REDIRECT_URI,
+        "client_id": SPOTIFY_CLIENT_ID,
+        "client_secret": SPOTIFY_CLIENT_SECRET
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    res = requests.post(token_url, data=payload, headers=headers)
+    token_data = res.json()
+    session["access_token"] = token_data.get("access_token")
+    session["refresh_token"] = token_data.get("refresh_token")
+    #return jsonify(token_data)
+    return redirect("/api/music/my-playlists") """
+
+
+""" @music_bp.route("/my-playlists")
+def my_playlists():
+    access_token = session.get("access_token")
+    if not access_token:
+        return jsonify({"error": "No access token"}), 401
+    headers = {"Authorization": f"Bearer {access_token}"}
+    res = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
+    
+    if res.status_code == 401:
+        access_token = refresh_spotify_token()
+        if not access_token:
+            return jsonify({"error": "Token refresh failed"}), 401
+        headers = {"Authorization": f"Bearer {access_token}"}
+        res = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
+    
+    return jsonify(res.json())
+
+ """

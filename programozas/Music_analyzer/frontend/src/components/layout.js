@@ -10,7 +10,7 @@ export default function Layout() {
            <Text fw={700} size="xl"> 🎧 Zene Alkalmazás </Text> 
            <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
               <Group> 
-                <Button component={Link} to="/" variant="filled" color="indigo" size="md" leftSection={<IconHome size={14} />}> Főoldal </Button>
+                <Button component={Link} to="/spotify-top" variant="filled" color="indigo" size="md" leftSection={<IconHome size={14} />}> Főoldal </Button>
                 <Button component={Link} to="/music-analyzer" variant="filled" color="indigo" size="md" leftSection={<IconMusic size={14} />}> Elemzés </Button> 
                 <Button component={Link} to="/lyrics-search" variant="filled" color="indigo" size="md" leftSection={<IconSearch size={14} />}> Zene Keresés </Button>
               </Group> 
