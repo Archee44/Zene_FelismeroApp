@@ -123,7 +123,7 @@ def search_lyrics():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-YOUTUBE_API_KEY = "AIzaSyC9oWbK7x2qZDKWjGGvAkrnuO8XzTNoyQI"
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 @music_bp.route("/youtube", methods=["GET"])
 def youtube_search():
@@ -146,8 +146,8 @@ def youtube_search():
     return jsonify({"video_url": video_url})
 
 
-SPOTIFY_CLIENT_ID = "15a835f82b7144e59792a71699f26b7e"
-SPOTIFY_CLIENT_SECRET = "feb7cfe529ad4ddfa6bdd0a098797979"
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
 def get_spotify_token():
     auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
