@@ -50,27 +50,6 @@ def analyze():
         print("Analyze error:", str(e))
         return jsonify({"error": f"Analyze failed: {str(e)}"}), 500
 
-    try:
-        print("Track data:", track_data)
-        track = save_track(db, track_data)
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print("Saving problem:", str(e))
-        return jsonify({"error": f"DB save failed: {str(e)}"}), 500
-
-    return jsonify({
-        "id": track.id,
-        "title": track.title,
-        "artist": track.artist,
-        "genre": track.genre,
-        "bpm": track.bpm,
-        "duration": track.duration,
-        "rms": track.rms,
-        "camelot": track.camelot,
-        "path": track.path
-    })
-
 
 @music_bp.route("/uploads/<path:filename>")
 def uploaded_file(filename):

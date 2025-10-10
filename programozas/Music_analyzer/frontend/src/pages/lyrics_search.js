@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { TextInput, Button, Card, Group } from '@mantine/core';
+import { TextInput, Button, Card, Group, Box, Image, Loader } from '@mantine/core';
+import { useMantineColorScheme } from '@mantine/core';
 
 export default function LyricsSearch() {
   const [snippet, setSnippet] = useState("");
@@ -8,12 +9,15 @@ export default function LyricsSearch() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { colorScheme } = useMantineColorScheme();
+  const dark = colorScheme === 'dark';
+
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
-
     setError("");
     setSongs([]);
     setLoading(true);
+
     try {
       const res = await fetch("http://127.0.0.1:5000/api/music/search-lyrics", {
         method: "POST",
@@ -21,6 +25,7 @@ export default function LyricsSearch() {
         body: JSON.stringify({ snippet })
       });
       const data = await res.json();
+
       if (res.status === 404 || (Array.isArray(data.songs) && data.songs.length === 0)) {
         setError("Nem található ilyen dalszövegű zene.");
         setSongs([]);
@@ -32,145 +37,170 @@ export default function LyricsSearch() {
       }
     } catch (e) {
       setError("Hálózati vagy szerverhiba történt."); 
-    } finally {setLoading(false);}
-
-  };
-  const handleNext = () => {
-    if (index < songs.length - 1) setIndex(index + 1);
-  };
-  const handlePrev = () => {
-    if (index > 0) setIndex(index - 1);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleNext = () => { if (index < songs.length - 1) setIndex(index + 1); };
+  const handlePrev = () => { if (index > 0) setIndex(index - 1); };
   const currentSong = songs[index];
 
-
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder style={{ maxWidth: 400, margin: "32px auto" }}>
-      <h1>Dalszöveg alapú kereső</h1>
-      <form onSubmit={handleSearch} style={{ display: "flex", flexDirection: "column"}}>
-        <TextInput
-          value={snippet}
-          onChange={e => setSnippet(e.target.value)}
-          placeholder="Írja be a dalszöveget"
-          size="md"
-        />
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minHeight: "calc(100vh - 100px)",
+        marginTop: "25px",
+      }}
+    >
+      <Card
+        shadow="xl"
+        padding="xl"
+        radius="lg"
+        withBorder
+        style={{
+          width: "100%",
+          maxWidth: 800,
+          backgroundColor: dark ? "#0C1A2A" : "#FFFFFF",
+          color: dark ? "#FFFFFF" : "#0C1A2A",
+          borderColor: dark ? "#483d8b" : "#FFD966",
+        }}
+      >
+        <h1 style={{ textAlign: "center", marginBottom: 32, fontSize: "3rem", fontWeight: 700 }}>
+          Dalszöveg alapú kereső
+        </h1>
 
-        <Button
-          onClick={handleSearch}
-          variant="filled"
-          color="#0C1A2A"
-          size="md"
-          mt="md"
-          loading={loading}
-          style={{ marginTop: 16 }}
-          disabled={!snippet.trim()}
-        >
-          Keresés
-        </Button>
-      </form>
+        <form onSubmit={handleSearch} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <Box style={{ position: "relative" }}>
+            <Box
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: 55,
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: dark ? "#483d8b" : "#FFD966",
+                borderTopLeftRadius: 10,
+                borderBottomLeftRadius: 10,
+                zIndex: 1,
+              }}
+            >
+              <Image src="/icons/New_MeloDive.png" width={28} height={28} radius="md" />
+            </Box>
 
-      {loading && (
-        <div style={{ marginTop: 16, textAlign: "center" }}>
-          <p style={{ marginTop: 8 }}>Keresés folyamatban...</p>
-        </div>
-      )} 
-
-      {error && (
-      <div style={{ color: "red", marginTop: 16, textAlign: "center" }}>
-        {error}
-      </div>
-      )}
-
-      {currentSong && (
-        <div style={{ marginTop: 24, textAlign: "center" }}>
-          {currentSong.cover && (
-            <img
-              src={currentSong.cover}
-              alt="Borítókép"
-              style={{ width: 200, borderRadius: 8, marginBottom: 16 }}
-            />
-          )}
-          <h2>{currentSong.title}</h2>
-          <p>{currentSong.artist}</p>
-
-          <div style={{ marginTop: '1rem', textAlign: "center" }}>
-            <div style={{ fontWeight: "bold", marginBottom: 4 }}>Megnyitás külső platformon:</div>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', justifyContent: 'center' }}>
-            <img
-              src='/icons/youtube_logo.png'
-              alt='YouTube'
-              width='32px'
-              height='32px'
-              style={{ cursor: 'pointer' }}
-              onClick={async () => {
-                try {
-                  const query = `${currentSong.artist} ${currentSong.title}`;
-                  const res = await fetch(`http://127.0.0.1:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
-                  const data = await res.json();
-                  if (data.video_url) {
-                    window.open(data.video_url, '_blank');
-                  } else {
-                    alert('Nem található konkrét YouTube videó ehhez a zenéhez.');
-                  }
-                } catch (error) {
-                  alert('Hiba történt a YouTube keresés során.');
-                  console.error(error);
-                }
+            <TextInput
+              value={snippet}
+              onChange={(e) => setSnippet(e.target.value)}
+              placeholder="Írj be egy dalszövegrészletet..."
+              size="lg"
+              radius="md"
+              styles={{
+                input: {
+                  paddingLeft: 65,
+                  fontSize: "1.1rem",
+                  height: "60px",
+                  backgroundColor: dark ? "#2C2E33" : "#FFFFFF",
+                  color: dark ? "#FFFFFF" : "#0C1A2A",
+                  borderColor: dark ? "#483d8b" : "#FFD966",
+                },
               }}
             />
-            <img
-              src='/icons/spotify_logo.png'
-              alt='Spotify'
-              width='32px'
-              height='32px'
-              style={{ cursor: 'pointer' }}
-              onClick={async () => {
-                try {
-                  const query = `${currentSong.artist} ${currentSong.title}`;
-                  const res = await fetch(`http://127.0.0.1:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
-                  const data = await res.json();
-                  if (data.track_url) {
-                    window.open(data.track_url, '_blank');
-                  } else {
-                    alert('Nem található a Spotify-on ez a zene.');
-                  }
-                } catch (error) {
-                  alert('Hiba történt a Spotify keresés során.');
-                  console.error(error);
-                }
-              }}
-            />
-            </div>
+          </Box>
+        </form>
+
+        {loading && (
+          <div style={{ textAlign: "center", marginTop: 24 }}>
+            <Loader color={dark ? "violet" : "yellow"} />
           </div>
+        )}
 
-          {songs.length > 1 && (
-            <div style={{ marginTop: 24 }} textAlign="center">
-              <Group justify="center" spacing="md">
+        {error && (
+          <p style={{ marginTop: 24, textAlign: "center", color: "#d9534f", fontWeight: 600 }}>{error}</p>
+        )}
+
+        {currentSong && (
+          <div style={{ marginTop: 40, textAlign: "center" }}>
+            {currentSong.cover && (
+              <img
+                src={currentSong.cover}
+                alt="Borítókép"
+                style={{ width: 250, borderRadius: 12, marginBottom: 20 }}
+              />
+            )}
+            <h2 style={{ fontSize: "1.6rem", marginBottom: 4 }}>{currentSong.title}</h2>
+            <p style={{ fontSize: "1.1rem", opacity: 0.8 }}>{currentSong.artist}</p>
+
+            <div style={{ marginTop: 20, display: "flex", justifyContent: "center", gap: 20 }}>
+              <img src="/icons/youtube_logo.png" alt="YouTube" width={40} height={40} style={{ cursor: "pointer" }} />
+              <img src="/icons/spotify_logo.png" alt="Spotify" width={40} height={40} style={{ cursor: "pointer" }} />
+            </div>
+
+            {songs.length > 1 && (
+              <Group justify="center" spacing="md" style={{ marginTop: 30 }}>
                 <Button
                   onClick={handlePrev}
-                  variant="light"
-                  color="gray"
                   disabled={index === 0}
-                >Előző
+                  size="md"
+                  radius="md"
+                  style={{
+                    backgroundColor: dark ? "#483d8b" : "#FFD966",
+                    color: dark ? "#FFFFFF" : "#0C1A2A",
+                  }}
+                >
+                  Előző
                 </Button>
-
-                <div style={{ fontWeight: 500 }}>
+                <div style={{ fontWeight: 600, fontSize: "1rem" }}>
                   {index + 1} / {songs.length}
                 </div>
-
                 <Button
                   onClick={handleNext}
-                  variant="light"
-                  color="gray"
                   disabled={index >= songs.length - 1}
-                >Következő
+                  size="md"
+                  radius="md"
+                  style={{
+                    backgroundColor: dark ? "#483d8b" : "#FFD966",
+                    color: dark ? "#FFFFFF" : "#0C1A2A",
+                  }}
+                >
+                  Következő
                 </Button>
               </Group>
-            </div>
-          )}
-        </div>
-      )}
-    </Card>
+            )}
+          </div>
+        )}
+      </Card>
+
+      <Box
+        style={{
+          maxWidth: 800,
+          textAlign: "center",
+          marginTop: 60,
+          marginBottom: 80,
+          color: dark ? "#D1D5DB" : "#333",
+        }}
+      >
+        <h2 style={{ fontSize: "2rem", marginBottom: 12 }}>Hogyan működik?</h2>
+        <p style={{ fontSize: "1.2rem", lineHeight: 1.6 }}>
+          Van egy dal, ami nem megy ki a fejedből?
+          Talán csak a szöveg egy részére emlékszel, például: „Egy dalt keresek, ami így szól…”
+          Ez az eszköz segít megtalálni azokat a dalokat, amelyek tartalmazzák az általad felidézett dalszöveget!
+        </p>
+        <p style={{ fontSize: "1.2rem", lineHeight: 1.6 }}>
+          Írd be a dalszöveg egy részét, és az oldal megpróbálja felismerni, melyik dalról van szó.  
+          Nem kell tudnod az előadót, és a szöveg sem kell pontos legyen.
+        </p>
+        <p style={{ fontSize: "1.2rem", marginTop: 8, lineHeight: 1.6 }}>
+          Ezután kiválaszthatod a legjobb egyezést.
+          A találatoknál megjelenik a borítókép, az előadó és a cím.
+          Lehetőséget kapsz arra is, hogy meghallgasd a dalt YouTube-on vagy Spotify-on.  
+        </p>
+      </Box>
+    </div>
   );
 }
