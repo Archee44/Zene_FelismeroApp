@@ -1,19 +1,21 @@
 import { useState } from "react";
-import { TextInput, Button, Card } from '@mantine/core';
+import { TextInput, Button, Card, Group } from '@mantine/core';
 
 export default function LyricsSearch() {
   const [snippet, setSnippet] = useState("");
   const [songs, setSongs] = useState([]);
   const [index, setIndex] = useState(0);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
 
     setError("");
     setSongs([]);
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/music/search-lyrics", {
+      const res = await fetch("http://127.0.0.1:5000/api/music/search-lyrics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ snippet })
@@ -29,11 +31,15 @@ export default function LyricsSearch() {
         setError("Nem adott meg dalszöveget");
       }
     } catch (e) {
-      setError("Hálózati vagy szerverhiba történt.");
-    }
+      setError("Hálózati vagy szerverhiba történt."); 
+    } finally {setLoading(false);}
+
   };
   const handleNext = () => {
     if (index < songs.length - 1) setIndex(index + 1);
+  };
+  const handlePrev = () => {
+    if (index > 0) setIndex(index - 1);
   };
 
   const currentSong = songs[index];
@@ -53,14 +59,22 @@ export default function LyricsSearch() {
         <Button
           onClick={handleSearch}
           variant="filled"
-          color="indigo"
+          color="#0C1A2A"
           size="md"
           mt="md"
+          loading={loading}
           style={{ marginTop: 16 }}
+          disabled={!snippet.trim()}
         >
           Keresés
         </Button>
       </form>
+
+      {loading && (
+        <div style={{ marginTop: 16, textAlign: "center" }}>
+          <p style={{ marginTop: 8 }}>Keresés folyamatban...</p>
+        </div>
+      )} 
 
       {error && (
       <div style={{ color: "red", marginTop: 16, textAlign: "center" }}>
@@ -92,7 +106,7 @@ export default function LyricsSearch() {
               onClick={async () => {
                 try {
                   const query = `${currentSong.artist} ${currentSong.title}`;
-                  const res = await fetch(`http://localhost:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
+                  const res = await fetch(`http://127.0.0.1:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
                   const data = await res.json();
                   if (data.video_url) {
                     window.open(data.video_url, '_blank');
@@ -114,7 +128,7 @@ export default function LyricsSearch() {
               onClick={async () => {
                 try {
                   const query = `${currentSong.artist} ${currentSong.title}`;
-                  const res = await fetch(`http://localhost:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
+                  const res = await fetch(`http://127.0.0.1:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
                   const data = await res.json();
                   if (data.track_url) {
                     window.open(data.track_url, '_blank');
@@ -131,16 +145,29 @@ export default function LyricsSearch() {
           </div>
 
           {songs.length > 1 && (
-            <Button
-              onClick={handleNext}
-              variant="light"
-              color="gray"
-              mt="md"
-              disabled={index >= songs.length - 1}
-              style={{ marginTop: 16 }}
-            >
-              Következő ({index + 1}/{songs.length})
-            </Button>
+            <div style={{ marginTop: 24 }} textAlign="center">
+              <Group justify="center" spacing="md">
+                <Button
+                  onClick={handlePrev}
+                  variant="light"
+                  color="gray"
+                  disabled={index === 0}
+                >Előző
+                </Button>
+
+                <div style={{ fontWeight: 500 }}>
+                  {index + 1} / {songs.length}
+                </div>
+
+                <Button
+                  onClick={handleNext}
+                  variant="light"
+                  color="gray"
+                  disabled={index >= songs.length - 1}
+                >Következő
+                </Button>
+              </Group>
+            </div>
           )}
         </div>
       )}

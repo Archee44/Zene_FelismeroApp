@@ -17,7 +17,7 @@ function MusicAnalyzer() {
     setResult(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/music/analyze', {
+      const res = await fetch('http://127.0.0.1:5000/api/music/analyze', {
         method: 'POST',
         body: formData,
       });
@@ -55,7 +55,7 @@ function MusicAnalyzer() {
       <div style={{ display: "flex", gap: "1rem", marginTop: "2rem" }}>
         <Button
           variant="filled"
-          color="blue"
+          color="#0C1A2A"
           onClick={handleAnalyze}
           disabled={loading || !file}
         >
@@ -79,7 +79,7 @@ function MusicAnalyzer() {
               <Text><strong>Lejátszás:</strong></Text>
               <audio
                 controls
-                src={`http://localhost:5000/api/music/uploads/${result.path}`} />
+                src={`http://127.0.0.1:5000/api/music/uploads/${result.path}`} />
             </div>
           )}
 
@@ -96,7 +96,7 @@ function MusicAnalyzer() {
                 onClick={async () => {
                   try {
                     const query = `${result.artist} ${result.title}`;
-                    const res = await fetch(`http://localhost:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
+                    const res = await fetch(`http://127.0.0.1:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
                     const data = await res.json();
                     if (data.video_url) {
                       window.open(data.video_url, '_blank');
@@ -119,7 +119,7 @@ function MusicAnalyzer() {
                 onClick={async () => {
                   try {
                     const query = `${result.artist} ${result.title}`;
-                    const res = await fetch(`http://localhost:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
+                    const res = await fetch(`http://127.0.0.1:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
                     const data = await res.json();
                     if (data.track_url) {
                       window.open(data.track_url, '_blank');

@@ -151,8 +151,11 @@ def youtube_search():
 
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> origin/main
 
 def get_spotify_token():
     auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
