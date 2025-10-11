@@ -15,7 +15,7 @@ export default function LyricsSearch() {
     setSongs([]);
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/music/search-lyrics", {
+      const res = await fetch("http://127.0.0.1:5000/api/music/search-lyrics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ snippet })
@@ -106,7 +106,7 @@ export default function LyricsSearch() {
               onClick={async () => {
                 try {
                   const query = `${currentSong.artist} ${currentSong.title}`;
-                  const res = await fetch(`http://localhost:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
+                  const res = await fetch(`http://127.0.0.1:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
                   const data = await res.json();
                   if (data.video_url) {
                     window.open(data.video_url, '_blank');
@@ -128,7 +128,7 @@ export default function LyricsSearch() {
               onClick={async () => {
                 try {
                   const query = `${currentSong.artist} ${currentSong.title}`;
-                  const res = await fetch(`http://localhost:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
+                  const res = await fetch(`http://127.0.0.1:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
                   const data = await res.json();
                   if (data.track_url) {
                     window.open(data.track_url, '_blank');

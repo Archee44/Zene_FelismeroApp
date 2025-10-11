@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
 from ..database import SessionLocal
 from backend.services.music_service import analyze_track, save_track, recommend_ai
+from backend.services.reccobeats import get_features_by_ids
 from backend.services.music_analyze import analyze_music
 from flask import send_from_directory
 import re
@@ -31,7 +32,8 @@ def analyze():
     if not file:
         return jsonify({"error": "Nincs fájl feltöltve!"}), 400
 
-    filepath = f"./uploads/{file.filename}"
+    safe_name = sanitize_filename(file.filename)
+    filepath = os.path.join(UPLOAD_DIR, safe_name)
     file.save(filepath)
 
     # Spotify token átadása, ha van
@@ -40,6 +42,10 @@ def analyze():
         user_token = request.headers["Authorization"].replace("Bearer ", "")
 
     result = analyze_music(filepath, user_token)
+    try:
+        result["path"] = safe_name
+    except Exception:
+        pass
     return jsonify(result)
 
 
@@ -154,3 +160,27 @@ def spotify_search():
     except Exception as e:
         print("Spotify search error:", e)
         return jsonify({"error": "Spotify API error"}), 500
+
+
+@music_bp.route("/reccobeats-features", methods=["GET"])
+def reccobeats_features():
+    ids_param = request.args.get("ids")
+    spotify_id = request.args.get("spotify_id")
+    if not ids_param and not spotify_id:
+        return jsonify({"error": "Missing ids or spotify_id"}), 400
+
+    ids = []
+    if ids_param:
+        ids = [x.strip() for x in ids_param.split(",") if x.strip()]
+    elif spotify_id:
+        ids = [spotify_id.strip()]
+
+    try:
+        api_key = os.getenv("RECCOBEATS_API_KEY")
+        data = get_features_by_ids(ids, api_key)
+        if data is None:
+            return jsonify({"error": "ReccoBeats API error"}), 500
+        return jsonify(data)
+    except Exception as e:
+        print("ReccoBeats features error:", e)
+        return jsonify({"error": "Unexpected server error"}), 500

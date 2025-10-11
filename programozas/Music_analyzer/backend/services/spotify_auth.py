@@ -12,7 +12,7 @@ load_dotenv()
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
-REDIRECT_URI = "http://localhost:5000/api/spotify/callback"
+REDIRECT_URI = "http://127.0.0.1:5000/api/spotify/callback"
 
 # 1️⃣ Spotify login
 @spotify_auth.route("/login")
@@ -63,4 +63,4 @@ def callback():
     print("✅ Spotify access token megszerezve:", access_token[:20], "...")
 
     # Visszairányítjuk a frontend appra
-    return redirect(f"http://localhost:3000/spotify-success?token={access_token}")
+    return redirect(f"http://127.0.0.1:3000/spotify-success?token={access_token}")
