@@ -126,7 +126,7 @@ def search_lyrics():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-YOUTUBE_API_KEY = "AIzaSyC9oWbK7x2qZDKWjGGvAkrnuO8XzTNoyQI"
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 @music_bp.route("/youtube", methods=["GET"])
 def youtube_search():
@@ -149,13 +149,9 @@ def youtube_search():
     return jsonify({"video_url": video_url})
 
 
-SPOTIFY_CLIENT_ID = "15a835f82b7144e59792a71699f26b7e"
-SPOTIFY_CLIENT_SECRET = "feb7cfe529ad4ddfa6bdd0a098797979"
-"""  """ """
-SPOTIFY_CLIENT_ID = "8c2fe85d5d78418ba2144554abdc2fba"
-SPOTIFY_CLIENT_SECRET = "2a0b0a2d127e49ebbb775fc02b2ee35a"
-REDIRECT_URI = "https://inappropriate-cody-primsie.ngrok-free.dev/api/music/callback"
-SCOPES = "playlist-read-private playlist-read-collaborative" """
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+
 
 
 def get_spotify_token():
@@ -213,140 +209,47 @@ def refresh_spotify_token():
 
 
 
-def spotify_top_tracks():
+
+@music_bp.route("/genius-top", methods=["GET"])
+def genius_top_songs():
+    import requests
+    from datetime import datetime
+
     try:
-        token = get_spotify_token()
-        headers = {"Authorization": f"Bearer {token}"}
-        params = {"q": "Top 50 Global", "type": "track", "limit": 50}
-        res = requests.get("https://api.spotify.com/v1/search", headers=headers, params=params)
+        url = "https://genius.com/api/songs/chart?time_period=day&chart_genre=all&per_page=50"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/118.0.5993.88 Safari/537.36",
+            "Accept": "application/json",
+        }
+
+        res = requests.get(url, headers=headers, timeout=10)
         res.raise_for_status()
+
         data = res.json()
+        chart_items = data.get("response", {}).get("chart_items", [])
+
+        if not chart_items:
+            return jsonify({"error": "Nem találtam toplistát a Genius API-n"}), 404
 
         top_tracks = []
-        for idx, track in enumerate(data["tracks"]["items"]):
+        for i, item in enumerate(chart_items, start=1):
+            song = item["item"]
             top_tracks.append({
-                "title": track["name"],
-                "artist": ", ".join([a["name"] for a in track["artists"]]),
-                "spotify_url": track["external_urls"]["spotify"],
-                "image": track["album"]["images"][0]["url"] if track["album"]["images"] else None,
-                "rank": idx + 1
+                "rank": i,
+                "title": song["title"],
+                "artist": song["primary_artist"]["name"],
+                "url": song["url"],
+                "image": song["song_art_image_thumbnail_url"]
             })
-        return jsonify({"top_tracks": top_tracks})
+
+        return jsonify({
+            "date": datetime.today().strftime("%Y-%m-%d"),
+            "top_tracks": top_tracks
+        })
 
     except Exception as e:
-        print("Spotify top tracks error:", e)
-        return jsonify({"error": "Failed to fetch top tracks"}), 500
-
-
-
-
-""" @music_bp.route("/spotify-top", methods=["GET"])
-def spotify_top_tracks():
-    try:
-        # Get access token using client credentials
-        token = get_spotify_token()
-        headers = {"Authorization": f"Bearer {token}"}
-
-        # Top 50 Global playlist ID
-        playlist_id = "37i9dQZEVXbMDoHDwVN2tF"
-        res = requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", headers=headers)
-        res.raise_for_status()
-        data = res.json()
-
-        top_tracks = []
-        for idx, item in enumerate(data["items"]):
-            track = item["track"]
-            top_tracks.append({
-                "title": track["name"],
-                "artist": ", ".join([a["name"] for a in track["artists"]]),
-                "spotify_url": track["external_urls"]["spotify"],
-                "image": track["album"]["images"][0]["url"] if track["album"]["images"] else None,
-                "rank": idx + 1
-            })
-
-        return jsonify({"top_tracks": top_tracks})
-
-    except Exception as e:
-        print("Spotify top tracks error:", e)
-        return jsonify({"error": "Failed to fetch top tracks"}), 500
-
- """
-
-
-
-""" @music_bp.route("/spotify-top", methods=["GET"])
-def spotify_top_tracks():
-    try:
-        url = "https://charts-spotify-com-service.spotify.com/api/charts?operationName=getChart&variables=%7B%22country%22%3A%22global%22%2C%22type%22%3A%22regional%22%2C%22date%22%3A%22latest%22%2C%22limit%22%3A50%2C%22offset%22%3A0%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%227e6b84c72683a53bafef9d8db68db7cc1cb8e5127b73313cda0c0c62496f9a59%22%7D%7D"
-
-        headers = {"User-Agent": "Mozilla/5.0"}
-        res = requests.get(url, headers=headers)
-        res.raise_for_status()
-        data = res.json()
-
-        top_tracks = []
-        for entry in data["entries"]:
-            meta = entry["trackMetadata"]
-            chart = entry["chartEntryData"]
-            top_tracks.append({
-                "title": meta["trackName"],
-                "artist": meta["artistName"],
-                "spotify_url": "https://open.spotify.com/track/" + meta["trackUri"].split(":")[-1],
-                "image": meta["displayImageUri"],
-                "rank": chart["currentRank"]
-            })
-        return jsonify({"top_tracks":top_tracks})
-    
-    except Exception as e:  
-        print("Spotify top tracks error:", e)
-        return jsonify({"error": "Failed to fetch top tracks"}), 500 """    
-""" 
-@music_bp.route("/login")
-def login():
-    auth_url = (
-        "https://accounts.spotify.com/authorize"
-        f"?response_type=code&client_id={SPOTIFY_CLIENT_ID}"
-        f"&scope={SCOPES}&redirect_uri={REDIRECT_URI}"
-    )
-    return redirect(auth_url)
- """
-""" 
-
-@music_bp.route("/callback")
-def callback():
-    code = request.args.get("code")
-    token_url = "https://accounts.spotify.com/api/token"
-    payload = {
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": REDIRECT_URI,
-        "client_id": SPOTIFY_CLIENT_ID,
-        "client_secret": SPOTIFY_CLIENT_SECRET
-    }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    res = requests.post(token_url, data=payload, headers=headers)
-    token_data = res.json()
-    session["access_token"] = token_data.get("access_token")
-    session["refresh_token"] = token_data.get("refresh_token")
-    #return jsonify(token_data)
-    return redirect("/api/music/my-playlists") """
-
-
-""" @music_bp.route("/my-playlists")
-def my_playlists():
-    access_token = session.get("access_token")
-    if not access_token:
-        return jsonify({"error": "No access token"}), 401
-    headers = {"Authorization": f"Bearer {access_token}"}
-    res = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
-    
-    if res.status_code == 401:
-        access_token = refresh_spotify_token()
-        if not access_token:
-            return jsonify({"error": "Token refresh failed"}), 401
-        headers = {"Authorization": f"Bearer {access_token}"}
-        res = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
-    
-    return jsonify(res.json())
-
- """
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500

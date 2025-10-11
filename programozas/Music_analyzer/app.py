@@ -5,7 +5,8 @@ from flask_cors import CORS
 import sys
 from pathlib import Path
 import os
-
+from dotenv import load_dotenv
+load_dotenv()
 
 project_root = Path(__file__).resolve().parent
 if str(project_root) not in sys.path:
