@@ -8,6 +8,9 @@ from flask import send_from_directory
 import re
 import requests
 import base64
+from flask import redirect, session
+import pandas as pd
+import io
 
 
 music_bp = Blueprint("music", __name__)
@@ -127,6 +130,11 @@ def youtube_search():
 
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> origin/main
 
 def get_spotify_token():
     auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
@@ -162,3 +170,68 @@ def spotify_search():
     except Exception as e:
         print("Spotify search error:", e)
         return jsonify({"error": "Spotify API error"}), 500
+
+
+
+def refresh_spotify_token():
+    refresh_token = session.get("refresh_token")
+    if not refresh_token:
+        return None
+    payload = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": SPOTIFY_CLIENT_ID,
+        "client_secret": SPOTIFY_CLIENT_SECRET
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    res = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
+    token_data = res.json()
+    session["access_token"] = token_data.get("access_token")
+    return token_data.get("access_token")
+
+
+
+
+@music_bp.route("/genius-top", methods=["GET"])
+def genius_top_songs():
+    import requests
+    from datetime import datetime
+
+    try:
+        url = "https://genius.com/api/songs/chart?time_period=day&chart_genre=all&per_page=50"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/118.0.5993.88 Safari/537.36",
+            "Accept": "application/json",
+        }
+
+        res = requests.get(url, headers=headers, timeout=10)
+        res.raise_for_status()
+
+        data = res.json()
+        chart_items = data.get("response", {}).get("chart_items", [])
+
+        if not chart_items:
+            return jsonify({"error": "Nem találtam toplistát a Genius API-n"}), 404
+
+        top_tracks = []
+        for i, item in enumerate(chart_items, start=1):
+            song = item["item"]
+            top_tracks.append({
+                "rank": i,
+                "title": song["title"],
+                "artist": song["primary_artist"]["name"],
+                "url": song["url"],
+                "image": song["song_art_image_thumbnail_url"]
+            })
+
+        return jsonify({
+            "date": datetime.today().strftime("%Y-%m-%d"),
+            "top_tracks": top_tracks
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
