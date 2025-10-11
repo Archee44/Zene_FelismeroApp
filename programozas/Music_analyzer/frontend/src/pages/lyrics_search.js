@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TextInput, Button, Card, Group, Box, Image, Loader } from '@mantine/core';
+import { TextInput, Button, Card, Box, Image, Loader } from '@mantine/core';
 import { useMantineColorScheme } from '@mantine/core';
 
 export default function LyricsSearch() {
@@ -142,19 +142,45 @@ export default function LyricsSearch() {
           </div>
 
           {songs.length > 1 && (
-            <Group justify="center" spacing="md" style={{ marginTop: 30 }}>
-              <Button onClick={handlePrev} disabled={index === 0} size="md" radius="md"
-                style={{ backgroundColor: dark ? "#483d8b" : "#FFD966", color: dark ? "#FFFFFF" : "#0C1A2A" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                marginTop: 30,
+                gap: 20,
+              }}
+            >
+              <Button
+                onClick={handlePrev}
+                disabled={index === 0}
+                size="md"
+                radius="md"
+                style={{
+                  backgroundColor: dark ? "#483d8b" : "#FFD966",
+                  color: dark ? "#FFFFFF" : "#0C1A2A",
+                  minWidth: 120,
+                }}
+              >
                 Előző
               </Button>
-              <div style={{ fontWeight: 600, fontSize: "1rem" }}>
+              <div style={{ fontWeight: 600, fontSize: "1rem", width: 50, textAlign: "center" }}>
                 {index + 1} / {songs.length}
               </div>
-              <Button onClick={handleNext} disabled={index >= songs.length - 1} size="md" radius="md"
-                style={{ backgroundColor: dark ? "#483d8b" : "#FFD966", color: dark ? "#FFFFFF" : "#0C1A2A" }}>
+              <Button
+                onClick={handleNext}
+                disabled={index >= songs.length - 1}
+                size="md"
+                radius="md"
+                style={{
+                  backgroundColor: dark ? "#483d8b" : "#FFD966",
+                  color: dark ? "#FFFFFF" : "#0C1A2A",
+                  minWidth: 120,
+                }}
+              >
                 Következő
               </Button>
-            </Group>
+            </div>
           )}
         </div>
       )}

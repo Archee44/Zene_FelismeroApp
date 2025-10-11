@@ -10,9 +10,9 @@ export default function MusicAnalyzer() {
 
   const { colorScheme } = useMantineColorScheme();
   const dark = colorScheme === "dark";
-  // ReccoBeats helper state
-  const [rbLoading, setRbLoading] = useState(false);
-  const [spotifyId, setSpotifyId] = useState("");
+
+  const { setRbLoading }= useState(false);
+  const { setSpotifyId } = useState("");
 
   const fetchReccobeatsById = async (id) => {
     if (!id) return;
@@ -128,7 +128,6 @@ export default function MusicAnalyzer() {
 
 
 
-          {/* External/derived audio features (progress bars) */}
           {(result.danceability !== undefined || result.energy !== undefined || result.valence !== undefined) && (
             <div style={{ marginTop: 12 }}>
               <Text size="sm" style={{ marginBottom: 8 }}><strong>ReccoBeats jellemzők</strong></Text>
