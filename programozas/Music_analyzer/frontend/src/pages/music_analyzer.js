@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, FileInput, Loader, Text, Card, Box } from "@mantine/core";
+import { Button, FileInput, Loader, Text, Card, Box, Progress } from "@mantine/core";
 import { useMantineColorScheme } from "@mantine/core";
 
 export default function MusicAnalyzer() {
@@ -10,6 +10,49 @@ export default function MusicAnalyzer() {
 
   const { colorScheme } = useMantineColorScheme();
   const dark = colorScheme === "dark";
+  // ReccoBeats helper state
+  const [rbLoading, setRbLoading] = useState(false);
+  const [spotifyId, setSpotifyId] = useState("");
+
+  const fetchReccobeatsById = async (id) => {
+    if (!id) return;
+    try {
+      setRbLoading(true);
+      const res = await fetch(`http://127.0.0.1:5000/api/music/reccobeats-features?spotify_id=${encodeURIComponent(id)}`);
+      const data = await res.json();
+      if (res.ok && data && Array.isArray(data.content) && data.content.length > 0) {
+        const feat = data.content[0];
+        setResult((prev) => ({ ...(prev || {}), ...feat }));
+      }
+    } catch (e) {
+      console.error("ReccoBeats fetch error", e);
+    } finally {
+      setRbLoading(false);
+    }
+  };
+
+  const resolveSpotifyIdAndFetch = async (artist, title) => {
+    try {
+      const q = `${artist} ${title}`;
+      const res = await fetch(`http://127.0.0.1:5000/api/music/spotify?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (res.ok && data && data.track_url) {
+        const url = data.track_url;
+        const idx = url.indexOf('/track/');
+        if (idx !== -1) {
+          const after = url.substring(idx + 7);
+          const id = after.split('?')[0].split('/')[0];
+          if (id) {
+            setSpotifyId(id);
+            await fetchReccobeatsById(id);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Spotify ID resolve error", e);
+    }
+  };
+
 
   const handleAnalyze = async () => {
     if (!file) return alert("Válassz egy MP3 fájlt!");
@@ -33,6 +76,9 @@ export default function MusicAnalyzer() {
 
       const data = await res.json();
       setResult(data);
+      if (data && data.artist && data.title) {
+        resolveSpotifyIdAndFetch(data.artist, data.title);
+      }
     } catch (err) {
       console.error(err);
       alert("Nem sikerült elemezni a fájlt.");
@@ -68,55 +114,108 @@ export default function MusicAnalyzer() {
           <Button onClick={handleAnalyze} disabled={loading || !file} size="md" radius="md"
             style={{ backgroundColor: dark ? "#483d8b" : "#FFD966", color: dark ? "#FFFFFF" : "#0C1A2A", width: "200px", height: "45px" }}>
             {loading ? <Loader size="sm" color={dark ? "violet" : "yellow"} /> : "Elemzés indítása"}
-          </Button>
-        </div>
-
-        {result && (
-          <div style={{ marginTop: 40, textAlign: "center" }}>
-            <h2 style={{ fontSize: "1.8rem", marginBottom: 16 }}>Elemzett adatok</h2>
-            <Text><strong>Cím:</strong> {result.title}</Text>
-            <Text><strong>Előadó:</strong> {result.artist}</Text>
-            <Text><strong>Műfaj:</strong> {result.genre}</Text>
-            <Text><strong>BPM:</strong> {result.bpm}</Text>
-            <Text><strong>Hossz:</strong> {result.duration?.toFixed(2)} mp</Text>
-            <Text><strong>RMS:</strong> {result.rms?.toFixed(4)}</Text>
-            <Text><strong>Camelot:</strong> {result.camelot}</Text>
-
-            {result.path && (
-              <div style={{ marginTop: "1rem" }}>
-                <audio controls src={`http://127.0.0.1:5000/api/music/uploads/${result.path}`}/>
-              </div>
-            )}
-
-            {result.title && result.artist && (
-              <div style={{ marginTop: "1.5rem" }}>
-                <Text><strong>Megnyitás külső platformon:</strong></Text>
-                <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 10 }}>
-                  <img src="/icons/youtube_logo.png" alt="YouTube" width={40} height={40} style={{ cursor: "pointer" }}
-                    onClick={async () => {
-                      const query = `${result.artist} ${result.title}`;
-                      const res = await fetch(
-                        `http://127.0.0.1:5000/api/music/youtube?q=${encodeURIComponent(query)}`
-                      );
-                      const data = await res.json();
-                      if (data.video_url) window.open(data.video_url, "_blank");
-                      else alert("Nem található YouTube-videó ehhez a zenéhez.");
-                    }}/>
-                  <img src="/icons/spotify_logo.png" alt="Spotify" width={40} height={40} style={{ cursor: "pointer" }}
-                    onClick={async () => {
-                      const query = `${result.artist} ${result.title}`;
-                      const res = await fetch(
-                        `http://127.0.0.1:5000/api/music/spotify?q=${encodeURIComponent(query)}`
-                      );
-                      const data = await res.json();
-                      if (data.track_url) window.open(data.track_url, "_blank");
-                      else alert("Nem található Spotify-link ehhez a zenéhez.");
-                    }}/>
-                </div>
-              </div>
-            )}
+          </Button> 
           </div>
-        )}
+      {result && (
+        <div style={{ marginTop: '20px' }}>
+          <h2>Elemzett adatok</h2>
+          <Text><strong>Cím:</strong> {result.title}</Text>
+          <Text><strong>Előadó:</strong> {result.artist}</Text>
+          <Text><strong>BPM:</strong> {result.bpm}</Text>
+          <Text><strong>Hossz:</strong> {result.duration.toFixed(2)} mp</Text>
+          <Text><strong>RMS:</strong> {result.rms.toFixed(4)}</Text>
+          <Text><strong>Camelot:</strong> {result.camelot}</Text>
+
+
+
+          {/* External/derived audio features (progress bars) */}
+          {(result.danceability !== undefined || result.energy !== undefined || result.valence !== undefined) && (
+            <div style={{ marginTop: 12 }}>
+              <Text size="sm" style={{ marginBottom: 8 }}><strong>ReccoBeats jellemzők</strong></Text>
+              {[{ key: 'danceability', label: 'Danceability' },
+                { key: 'energy', label: 'Energy' },
+                { key: 'valence', label: 'Valence' },
+                { key: 'acousticness', label: 'Acousticness' },
+                { key: 'instrumentalness', label: 'Instrumentalness' },
+                { key: 'liveness', label: 'Liveness' },
+                { key: 'speechiness', label: 'Speechiness' }].map((f) => (
+                result[f.key] !== undefined && (
+                  <div key={f.key} style={{ marginBottom: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <Text size="sm">{f.label}</Text>
+                      <Text size="sm" color="dimmed">{Number(result[f.key]).toFixed(3)}</Text>
+                    </div>
+                    <Progress value={Math.max(0, Math.min(100, Number(result[f.key]) * 100))} radius="sm" />
+                  </div>
+                )
+              ))}
+            </div>
+          )}
+
+
+          {result.path && (
+            <div style={{ marginTop: '1rem' }}>
+              <Text><strong>Lejátszás:</strong></Text>
+              <audio
+                controls
+                src={`http://127.0.0.1:5000/api/music/uploads/${result.path}`} />
+            </div>
+          )}
+
+          {result.title && result.artist && (
+            <div style={{ marginTop: '1rem' }}>
+              <Text><strong>Megnyitás külső platformon:</strong></Text>
+              <div style={{ justifyContent: 'center', display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <img
+                src='/icons/youtube_logo.png'
+                alt='YouTube'
+                width='32px'
+                height='32px'
+                style={{ cursor: 'pointer' }}
+                onClick={async () => {
+                  try {
+                    const query = `${result.artist} ${result.title}`;
+                    const res = await fetch(`http://127.0.0.1:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+                    if (data.video_url) {
+                      window.open(data.video_url, '_blank');
+                    } else {
+                      alert('Nem található konkrét YouTube videó ehhez a zenéhez.');
+                    }
+                  } catch (error) {
+                    alert('Hiba történt a YouTube keresés során.');
+                    console.error(error);
+                  }
+                }}
+                  />
+                
+                <img
+                src='/icons/spotify_logo.png'
+                alt='Spotify'
+                width='32px'
+                height='32px'
+                style={{ cursor: 'pointer' }}
+                onClick={async () => {
+                  try {
+                    const query = `${result.artist} ${result.title}`;
+                    const res = await fetch(`http://127.0.0.1:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+                    if (data.track_url) {
+                      window.open(data.track_url, '_blank');
+                    } else {
+                      alert('Nem található a Spotify-on ez a zene.');
+                    }
+                  } catch (error) {
+                    alert('Hiba történt a Spotify keresés során.');
+                    console.error(error);
+                  }
+                }}
+              />
+              </div>
+            </div>
+          )} 
+        </div>
+            )}
       </Card>
     </div>
   );

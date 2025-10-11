@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
 from ..database import SessionLocal
 from backend.services.music_service import analyze_track, save_track, recommend_ai
+from backend.services.reccobeats import get_features_by_ids
 from backend.services.music_analyze import analyze_music
 from flask import send_from_directory
 import re
@@ -29,28 +30,25 @@ def get_db():
 
 @music_bp.route("/analyze", methods=["POST"])
 def analyze():
-    db: Session = next(get_db())
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "Nincs fájl feltöltve!"}), 400
 
+    safe_name = sanitize_filename(file.filename)
+    filepath = os.path.join(UPLOAD_DIR, safe_name)
+    file.save(filepath)
+
+    # Spotify token átadása, ha van
+    user_token = None
+    if "Authorization" in request.headers:
+        user_token = request.headers["Authorization"].replace("Bearer ", "")
+
+    result = analyze_music(filepath, user_token)
     try:
-        file = request.files["file"]
-    
-        raw_filename = file.filename
-        safe_filename = sanitize_filename(raw_filename)
-        file_path = os.path.join(UPLOAD_DIR, safe_filename)
-        print("Upload dir:", UPLOAD_DIR)
-
-        file.save(file_path)
-        print(f"File saved to {file_path}")
-
-
-        track_data = analyze_music(file_path)
-        track_data["path"] = safe_filename
-        return jsonify(track_data)
-    except Exception as e:
-        print("Analyze error:", str(e))
-        return jsonify({"error": f"Analyze failed: {str(e)}"}), 500
+        result["path"] = safe_name
+    except Exception:
+        pass
+    return jsonify(result)
 
 
 @music_bp.route("/uploads/<path:filename>")
@@ -169,25 +167,6 @@ def spotify_search():
 
 
 
-def refresh_spotify_token():
-    refresh_token = session.get("refresh_token")
-    if not refresh_token:
-        return None
-    payload = {
-        "grant_type": "refresh_token",
-        "refresh_token": refresh_token,
-        "client_id": SPOTIFY_CLIENT_ID,
-        "client_secret": SPOTIFY_CLIENT_SECRET
-    }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    res = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
-    token_data = res.json()
-    session["access_token"] = token_data.get("access_token")
-    return token_data.get("access_token")
-
-
-
-
 @music_bp.route("/genius-top", methods=["GET"])
 def genius_top_songs():
     import requests
@@ -231,3 +210,26 @@ def genius_top_songs():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+    
+@music_bp.route("/reccobeats-features", methods=["GET"])
+def reccobeats_features():
+    ids_param = request.args.get("ids")
+    spotify_id = request.args.get("spotify_id")
+    if not ids_param and not spotify_id:
+        return jsonify({"error": "Missing ids or spotify_id"}), 400
+
+    ids = []
+    if ids_param:
+        ids = [x.strip() for x in ids_param.split(",") if x.strip()]
+    elif spotify_id:
+        ids = [spotify_id.strip()]
+
+    try:
+        api_key = os.getenv("RECCOBEATS_API_KEY")
+        data = get_features_by_ids(ids, api_key)
+        if data is None:
+            return jsonify({"error": "ReccoBeats API error"}), 500
+        return jsonify(data)
+    except Exception as e:
+        print("ReccoBeats features error:", e)
+        return jsonify({"error": "Unexpected server error"}), 500
