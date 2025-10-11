@@ -11,8 +11,10 @@ export default function MusicAnalyzer() {
   const { colorScheme } = useMantineColorScheme();
   const dark = colorScheme === "dark";
 
-  const { setRbLoading }= useState(false);
-  const { setSpotifyId } = useState("");
+  
+
+  const [rbLoading, setRbLoading] = useState(false);
+  const [spotifyId, setSpotifyId] = useState("");
 
   const fetchReccobeatsById = async (id) => {
     if (!id) return;
@@ -130,7 +132,6 @@ export default function MusicAnalyzer() {
 
           {(result.danceability !== undefined || result.energy !== undefined || result.valence !== undefined) && (
             <div style={{ marginTop: 12 }}>
-              <Text size="sm" style={{ marginBottom: 8 }}><strong>ReccoBeats jellemzők</strong></Text>
               {[{ key: 'danceability', label: 'Danceability' },
                 { key: 'energy', label: 'Energy' },
                 { key: 'valence', label: 'Valence' },
@@ -140,10 +141,10 @@ export default function MusicAnalyzer() {
                 { key: 'speechiness', label: 'Speechiness' }].map((f) => (
                 result[f.key] !== undefined && (
                   <div key={f.key} style={{ marginBottom: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <Text size="sm">{f.label}</Text>
-                      <Text size="sm" color="dimmed">{Number(result[f.key]).toFixed(3)}</Text>
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text size="sm" fw={700}>{f.label}</Text>
+                    <Text size="sm" color="dimmed">{Number(result[f.key]).toFixed(3)}</Text>
+                  </div>
                     <Progress value={Math.max(0, Math.min(100, Number(result[f.key]) * 100))} radius="sm" />
                   </div>
                 )
