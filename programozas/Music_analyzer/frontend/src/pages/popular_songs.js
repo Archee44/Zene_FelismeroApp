@@ -1,4 +1,4 @@
-import { Title, Text, Card, Grid, Image, Anchor } from '@mantine/core';
+import { Title, Text, Card, Grid, Image } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
