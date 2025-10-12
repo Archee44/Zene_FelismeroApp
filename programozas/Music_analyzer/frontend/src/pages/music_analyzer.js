@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Button, FileInput, Loader, Text, Card, Box, Progress } from "@mantine/core";
+import { Button, FileInput, Loader, Text, Card, Box, Progress, Tooltip } from "@mantine/core";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { useMantineColorScheme } from "@mantine/core";
 
 export default function MusicAnalyzer() {
@@ -15,6 +16,28 @@ export default function MusicAnalyzer() {
 
   const [rbLoading, setRbLoading] = useState(false);
   const [spotifyId, setSpotifyId] = useState("");
+  const tips = {
+    danceability: '0–1 közötti érték; a táncolhatóság mértéke a tempó, ritmus és energia alapján.',
+    energy: '0–1 közötti intenzitás/élénkség. Magas érték: gyorsabb, hangosabb, erőteljesebb hangzás.',
+    valence: '0–1 “pozitivitás”. Magas: vidám, alacsony: melankolikus/komor hangulat.',
+    acousticness: '0–1 közötti biztonság, mennyire természetes/akusztikus a hangzás.',
+    instrumentalness: '0–1: ének nélküli valószínűség. 0.5 felett inkább instrumentális.',
+    liveness: '0–1: közönség/élő felvétel valószínűsége. 0.8 felett erősen élő.',
+    speechiness: '0–1: beszéd aránya. 0.66 felett főként beszéd; 0.33 alatt jellemzően zenei.',
+  };
+  const labelHu = (eng) => ({
+    Danceability: 'Táncolhatóság',
+    Energy: 'Energia',
+    Valence: 'Valencia',
+    Acousticness: 'Akusztikusság',
+    Instrumentalness: 'Instrumentálisság',
+    Liveness: 'Élő jelleg',
+    Speechiness: 'Beszédesség',
+  })[eng] || eng;
+  const pct = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.min(100, n * 100)) : 0;
+  };
 
   const fetchReccobeatsById = async (id) => {
     if (!id) return;
@@ -141,11 +164,18 @@ export default function MusicAnalyzer() {
                 { key: 'speechiness', label: 'Speechiness' }].map((f) => (
                 result[f.key] !== undefined && (
                   <div key={f.key} style={{ marginBottom: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Text size="sm" fw={700}>{f.label}</Text>
-                    <Text size="sm" color="dimmed">{Number(result[f.key]).toFixed(3)}</Text>
-                  </div>
-                    <Progress value={Math.max(0, Math.min(100, Number(result[f.key]) * 100))} radius="sm" />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Text size="sm" fw={700}>{labelHu(f.label)}</Text>
+                        <Tooltip label={tips[f.key]} withArrow multiline w={280}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', cursor: 'help', color: '#6b7280' }}>
+                            <IconInfoCircle size={14} />
+                          </span>
+                        </Tooltip>
+                      </div>
+                      <Text size="sm" color="dimmed">{Number(result[f.key]).toFixed(3)}</Text>
+                    </div>
+                    <Progress value={pct(result[f.key])} radius="sm" />
                   </div>
                 )
               ))}
@@ -157,14 +187,13 @@ export default function MusicAnalyzer() {
             <div style={{ marginTop: '1rem' }}>
               <Text><strong>Lejátszás:</strong></Text>
               <audio
-                controls
+                controls style={{ display: 'block', margin: '0 auto' }}
                 src={`http://127.0.0.1:5000/api/music/uploads/${result.path}`} />
             </div>
           )}
 
           {result.title && result.artist && (
             <div style={{ marginTop: '1rem' }}>
-              <Text><strong>Megnyitás külső platformon:</strong></Text>
               <div style={{ justifyContent: 'center', display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                 <img
                 src='/icons/youtube_logo.png'
@@ -222,3 +251,4 @@ export default function MusicAnalyzer() {
 }
 
 export { MusicAnalyzer };
+
