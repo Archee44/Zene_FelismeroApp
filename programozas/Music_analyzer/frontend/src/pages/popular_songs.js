@@ -51,77 +51,79 @@ export default function PopularSongs() {
         <Grid gutter="sm">
           {Array.isArray(songs) && songs.map((song, index) => (
             <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={index}>
-              <Card shadow="sm" padding="lg" radius="md" withBorder backgroundColor="white" style={{ border: " 2px solid white" }}
+              <Card shadow="sm" padding="lg" radius="md" withBorder backgroundColor="white" style={{ border: " 2px solid white", height: "350px", display: "flex", flexDirection: "column"}}
                 onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}>
-                <Card.Section>
-                  <Image
-                    src={song.image}
-                    height={180}
-                    alt={`${song.title} borítókép`}
-                    fit="cover"
-                  />
-                </Card.Section>
-                <Text fw={700} mt="md">
-                  <Text span c="yellow"><strong>{song.rank}. </strong></Text>
-                  <Text span c="yellow"><strong>{song.title}</strong></Text>
-                </Text>
-                <Text c="black"><strong>{song.artist}</strong></Text>
-
-                <div style={{ marginTop: '1rem' }}>
-                  <div style={{
-                    justifyContent: 'center',
-                    display: 'flex',
-                    gap: '1rem',
-                    marginTop: '0.5rem'
-                  }}>
-                    <img
-                      src='/icons/youtube_logo.png'
-                      alt='YouTube'
-                      width='32px'
-                      height='32px'
-                      style={{ cursor: 'pointer' }}
-                      onClick={async () => {
-                        try {
-                          const query = `${song.artist} ${song.title}`;
-                          const res = await fetch(`http://localhost:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
-                          const data = await res.json();
-                          if (data.video_url) {
-                            window.open(data.video_url, '_blank');
-                          } else {
-                            alert('Nem található konkrét YouTube videó ehhez a zenéhez.');
-                          }
-                        } catch (error) {
-                          alert('Hiba történt a YouTube keresés során.');
-                          console.error(error);
-                        }
-                      }}
+                <div>
+                  <Card.Section>
+                    <Image
+                      src={song.image}
+                      height={180}
+                      alt={`${song.title} borítókép`}
+                      fit="cover"
                     />
-
-                    <img
-                      src='/icons/spotify_logo.png'
-                      alt='Spotify'
-                      width='32px'
-                      height='32px'
-                      style={{ cursor: 'pointer' }}
-                      onClick={async () => {
-                        try {
-                          const query = `${song.artist} ${song.title}`;
-                          const res = await fetch(`http://localhost:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
-                          const data = await res.json();
-                          if (data.track_url) {
-                            window.open(data.track_url, '_blank');
-                          } else {
-                            alert('Nem található a Spotify-on ez a zene.');
-                          }
-                        } catch (error) {
-                          alert('Hiba történt a Spotify keresés során.');
-                          console.error(error);
-                        }
-                      }}
-                    />
-                  </div>
+                  </Card.Section>
+                  <Text fw={700} mt="md">
+                    <Text span c="yellow"><strong>{song.rank}. </strong></Text>
+                    <Text span c="yellow"><strong>{song.title}</strong></Text>
+                  </Text>
+                  <Text c="black"><strong>{song.artist}</strong></Text>
                 </div>
+
+                <div style={{
+                  marginTop: 'auto',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '1rem',
+                  paddingBottom: '0.5rem'
+                }}>
+                  <img
+                    src='/icons/youtube_logo.png'
+                    alt='YouTube'
+                    width='32px'
+                    height='32px'
+                    style={{ cursor: 'pointer' }}
+                    onClick={async () => {
+                      try {
+                        const query = `${song.artist} ${song.title}`;
+                        const res = await fetch(`http://localhost:5000/api/music/youtube?q=${encodeURIComponent(query)}`);
+                        const data = await res.json();
+                        if (data.video_url) {
+                          window.open(data.video_url, '_blank');
+                        } else {
+                          alert('Nem található konkrét YouTube videó ehhez a zenéhez.');
+                        }
+                      } catch (error) {
+                        alert('Hiba történt a YouTube keresés során.');
+                        console.error(error);
+                      }
+                    }}
+                  />
+
+                  <img
+                    src='/icons/spotify_logo.png'
+                    alt='Spotify'
+                    width='32px'
+                    height='32px'
+                    style={{ cursor: 'pointer' }}
+                    onClick={async () => {
+                      try {
+                        const query = `${song.artist} ${song.title}`;
+                        const res = await fetch(`http://localhost:5000/api/music/spotify?q=${encodeURIComponent(query)}`);
+                        const data = await res.json();
+                        if (data.track_url) {
+                          window.open(data.track_url, '_blank');
+                        } else {
+                          alert('Nem található a Spotify-on ez a zene.');
+                        }
+                      } catch (error) {
+                        alert('Hiba történt a Spotify keresés során.');
+                        console.error(error);
+                      }
+                    }}
+                  />
+          
+              </div>
               </Card>
             </Grid.Col>
           ))}
