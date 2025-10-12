@@ -51,7 +51,7 @@ export default function PopularSongs() {
         <Grid gutter="sm">
           {Array.isArray(songs) && songs.map((song, index) => (
             <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={index}>
-              <Card shadow="sm" padding="lg" radius="md" withBorder style={{ background: "transparent", border: " 2px solid white" }}
+              <Card shadow="sm" padding="lg" radius="md" withBorder backgroundColor="white" style={{ border: " 2px solid white" }}
                 onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}>
                 <Card.Section>
@@ -66,7 +66,7 @@ export default function PopularSongs() {
                   <Text span c="yellow"><strong>{song.rank}. </strong></Text>
                   <Text span c="yellow"><strong>{song.title}</strong></Text>
                 </Text>
-                <Text c="white"><strong>{song.artist}</strong></Text>
+                <Text c="black"><strong>{song.artist}</strong></Text>
 
                 <div style={{ marginTop: '1rem' }}>
                   <div style={{
