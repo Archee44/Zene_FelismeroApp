@@ -130,7 +130,7 @@ export default function PopularSongs() {
         </Grid>
       </Container>
     ) : (
-    <Container fluid style={{ width: "80vw", margin: "0 auto", padding: "0 2rem" }}>
+    <Container fluid style={{ width: "80vw", margin: "0 auto", padding: "0 2rem", backgroundColor: "#FFF8E7", border: "2.5px solid #FFD966", borderRadius: "25px"}}>
         {Array.isArray(songs) && songs.map((song, index) => (
           <Flex
             key={index}
@@ -139,8 +139,9 @@ export default function PopularSongs() {
             style={{
               width: "100%",
               padding: "14px 0",
-              borderBottom: "2.5px solid #e0e0e0",
+              borderBottom: "2.5px solid gray",
               transition: "background 0.2s ease",
+             /*  backgroundColor: "#FFD966" */
             }}
             onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}>
@@ -157,7 +158,7 @@ export default function PopularSongs() {
 
             <div style={{ flex: 1, marginLeft: "1rem" }}>
               <Text c="yellow" fw={600}><strong>{song.title}</strong></Text>
-              <Text c="white" size="sm"><strong>{song.artist}</strong></Text>
+              <Text c="black" size="sm"><strong>{song.artist}</strong></Text>
             </div>
 
             <Group gap="sm">
