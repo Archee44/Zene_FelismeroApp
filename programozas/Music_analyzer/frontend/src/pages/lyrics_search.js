@@ -78,13 +78,6 @@ export default function LyricsSearch() {
           </div>
         )}
 
-
-      {error && (
-      <div style={{ color: "red", marginTop: 16, textAlign: "center" }}>
-        {error}
-      </div>
-      )}
-
       {currentSong && (
         <div style={{ marginTop: 40, textAlign: "center" }}>
           {currentSong.cover && (
