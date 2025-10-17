@@ -15,7 +15,7 @@ export default function Layout() {
   };
 
   return (
-    <AppShell header={{ height: 80 }} padding="40"
+    <AppShell header={{ height: 80 }}
       style={{ backgroundImage: dark ? "url('/icons/dark_version.png')" : "url('/icons/light_version.jpg')", backgroundSize: "cover", backgroundPosition: "center",
       backgroundRepeat: "no-repeat", backgroundAttachment: "fixed",  minHeight: "100vh", color: dark ? "#fff" : "#000"}}>
       <AppShell.Header

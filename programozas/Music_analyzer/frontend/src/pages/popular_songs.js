@@ -2,10 +2,14 @@ import { Text, Card, Grid, Image, Container, Flex, Group, Button } from '@mantin
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { IconCards, IconList } from '@tabler/icons-react';
+import { useMantineColorScheme } from '@mantine/core';
 
 export default function PopularSongs() {
   const [songs, setSongs] = useState([]);
   const [value, setValue] = useState("Lista");
+
+  const { colorScheme } = useMantineColorScheme();
+  const dark = colorScheme === "dark";
 
   useEffect(() => {
     axios.get("http://127.0.0.1:5000/api/music/genius-top")
@@ -28,7 +32,7 @@ export default function PopularSongs() {
         marginTop: "3rem"
       }}>
         <div style={{
-          background: "linear-gradient(135deg, #fae3aeff, #1883c1ff)",
+          background: dark ? "linear-gradient(135deg, #483d8b, #0C1A2A)" : "linear-gradient(135deg, #fae3aeff, #1883c1ff)",
           color: "white",
           padding: "4.5rem 4.5rem",
           boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
@@ -48,13 +52,13 @@ export default function PopularSongs() {
 
       {value === "Kártya" ? (
       <Container size="lg">
-        <Grid gutter="sm">
+        <Grid gutter="sm" >
           {Array.isArray(songs) && songs.map((song, index) => (
-            <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={index}>
-              <Card shadow="sm" padding="lg" radius="md" withBorder backgroundColor="white" style={{ border: " 2px solid white", height: "350px", display: "flex", flexDirection: "column"}}
+            <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 2.4 }} key={index}>
+              <Card shadow="sm" padding="lg" radius="md" withBorder style={{ backgroundColor: dark ? "#0C1A2A" : "#FFF8E7", border: dark ? "2px solid #483d8b" : "2px solid #FFD966", height: "350px", display: "flex", flexDirection: "column"}}
                 onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}>
-                <div>
+                <div style={{ textAlign: "center" }}>
                   <Card.Section>
                     <Image
                       src={song.image}
@@ -64,10 +68,10 @@ export default function PopularSongs() {
                     />
                   </Card.Section>
                   <Text fw={700} mt="md">
-                    <Text span c="yellow"><strong>{song.rank}. </strong></Text>
-                    <Text span c="yellow"><strong>{song.title}</strong></Text>
+                    <Text span c={dark ? "#a78bfa" : "yellow"}><strong>{song.rank}. </strong></Text>
+                    <Text span c={dark ? "#a78bfa" : "yellow"}><strong>{song.title}</strong></Text>
                   </Text>
-                  <Text c="black"><strong>{song.artist}</strong></Text>
+                  <Text c={dark ? "#FFFFFF" :"black"}><strong>{song.artist}</strong></Text>
                 </div>
 
                 <div style={{
@@ -130,7 +134,7 @@ export default function PopularSongs() {
         </Grid>
       </Container>
     ) : (
-    <Container fluid style={{ width: "80vw", margin: "0 auto", padding: "0 2rem", backgroundColor: "#FFF8E7", border: "2.5px solid #FFD966", borderRadius: "25px"}}>
+    <Container fluid style={{ width: "80vw", margin: "0 auto", padding: "0 2rem", backgroundColor: dark ? "#0C1A2A" : "#FFF8E7", border: dark ? "2.5px solid #483d8b" : "2.5px solid #FFD966", borderRadius: "25px"}}>
         {Array.isArray(songs) && songs.map((song, index) => (
           <Flex
             key={index}
@@ -157,8 +161,8 @@ export default function PopularSongs() {
             />
 
             <div style={{ flex: 1, marginLeft: "1rem" }}>
-              <Text c="yellow" fw={600}><strong>{song.title}</strong></Text>
-              <Text c="black" size="sm"><strong>{song.artist}</strong></Text>
+              <Text c={ dark ? "#a78bfa": "yellow"} fw={600}><strong>{song.title}</strong></Text>
+              <Text c={ dark ? "#FFFFFF" : "black"} size="sm"><strong>{song.artist}</strong></Text>
             </div>
 
             <Group gap="sm">
